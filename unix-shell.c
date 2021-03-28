@@ -10,6 +10,7 @@
 #define MAX_LINE 80 /* The maximum length command */
 int main(void) {
     char line[MAX_LINE];
+    char prevLine[MAX_LINE];
     char *args[MAX_LINE/2 + 1]; /* command line arguments */
     char *prev[MAX_LINE/2+1]; //previous command for ! !
     int argsLen=0;
@@ -27,8 +28,12 @@ int main(void) {
             break;
         }
         bool hasAmp=false;
+        bool hasPipe=false;
         if(strcmp(line, "&")>=0){ //if the input says "exit"
             hasAmp=true;
+        }
+        if(strcmp(line,"|")>=0){
+            hasPipe=true;
         }
         size_t length = strlen(line);
         if (line[length - 1] == '\n')
@@ -36,6 +41,14 @@ int main(void) {
         if(strcmp(line, "exit")==0){ //if the input says "exit"
             return 0;
         }
+        /*if(strncmp(line,"!!",2)==0){
+            if(strlen(prevLine)==0){
+                fprintf(stderr,"No previous command\n");
+            }
+            printf("Previous command: %s\n",prevLine);
+        }
+        strcpy(line,prevLine);
+        printf("You entered: %s\n",line);*/
         char *token;
         token=strtok(line," ");
         int tokIndex=0;
@@ -43,6 +56,9 @@ int main(void) {
             args[tokIndex]=token;
             token=strtok(NULL," ");
         }
+        /*if(hasAmp==true){
+            tokIndex--;
+        }*/
         args[tokIndex]=NULL;
         argsLen=tokIndex;
         for(tokIndex=0; tokIndex<argsLen; tokIndex++){
