@@ -9,8 +9,8 @@
 #include <sys/wait.h>
 #define MAX_LINE 80 /* The maximum length command */
 int main(void) {
-    char line[MAX_LINE];
-    char prevLine[MAX_LINE];
+    char line[MAX_LINE] = "\0";
+    char prevLine[MAX_LINE] = "\0";
     char *args[MAX_LINE/2 + 1]; /* command line arguments */
     char *prev[MAX_LINE/2+1]; //previous command for ! !
     int argsLen=0;
@@ -29,25 +29,33 @@ int main(void) {
         }
         bool hasAmp=false;
         bool hasPipe=false;
-        if(strcmp(line, "&")>=0){ //if the input says "exit"
+        if(strchr(line, '&')){ //if the input says "exit"
             hasAmp=true;
         }
-        if(strcmp(line,"|")>=0){
+        if(strchr(line,'|')){
             hasPipe=true;
         }
         size_t length = strlen(line);
         if (line[length - 1] == '\n')
-        line[length - 1] = '\0';
-        if(strcmp(line, "exit")==0){ //if the input says "exit"
-            printf("Bye\n");
+        	line[length - 1] = '\0';
+
+        if(!strcmp(line, "exit")){ //if the input says "exit"
             return 0;
         }
+
         if(strncmp(line,"!!",2)==0){
-            printf("Accessing last command\n");
+            if(strlen(prevLine)==0){
+                fprintf(stderr,"No previous command\n");
+            }
+            printf("Previous command: %s\n",prevLine);
             strcpy(line,prevLine);
+
         }
-        /*strcpy(line,prevLine);
-        printf("You entered: %s\n",line);*/
+        strcpy(prevLine,line);
+        printf("You entered: %s\n",line);
+
+
+
         char *token;
         token=strtok(line," ");
         int tokIndex=0;
@@ -61,7 +69,7 @@ int main(void) {
         args[tokIndex]=NULL;
         argsLen=tokIndex;
         for(tokIndex=0; tokIndex<argsLen; tokIndex++){
-            printf("%s\n", args[tokIndex]);
+            printf("%s\n", args[tokIndex]);      //print command/args
         }
         int procId=fork();
         if(procId<0){
