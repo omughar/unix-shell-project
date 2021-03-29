@@ -6,15 +6,44 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <fcntl.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #define MAX_LINE 80 /* The maximum length command */
+
+
+int findAmp(char str[], int n) {
+	int i = 0;
+	for (; i < n; ++i){
+      if(str[i] == '&'){
+    	  return i;
+      }
+   }
+   return i;
+}
+
+char *trimString(char *s) {
+    char *ptr;
+    if (!s)
+        return NULL;   // handle NULL string
+    if (!*s)
+        return s;      // handle empty string
+    for (ptr = s + strlen(s) - 1; (ptr >= s) && isspace(*ptr); --ptr);
+    ptr[1] = '\0';
+    return s;
+}
+
+
 int main(void) {
     char line[MAX_LINE] = "\0";
+    int lineLen=strlen(line);
     char prevLine[MAX_LINE] = "\0";
     char *args[MAX_LINE/2 + 1]; /* command line arguments */
     char *prev[MAX_LINE/2+1]; //previous command for ! !
     int argsLen=0;
     int should_run = 1; /* flag to determine when to exit program */
+    int fd[2];
+    pipe(fd);
     while (should_run) {
         printf("osh>");
         fflush(stdout);
@@ -29,8 +58,35 @@ int main(void) {
         }
         bool hasAmp=false;
         bool hasPipe=false;
-        if(strchr(line, '&')){ //if the input says "exit"
+
+        //int ampIndex = strchr(line, '&');
+
+        int ampIndex = findAmp(line, strlen(line));
+
+        if(ampIndex){
             hasAmp=true;
+            for (int i = ampIndex; i < strlen(line); i++ ) {
+            	line[i] = '\0';
+            }
+        }
+
+        char *locationOfGreaterThan = strchr(line, '>');
+        if(locationOfGreaterThan != NULL ){
+            //for(int i=0;i<argsLen;i++){
+                //if(strchr(args[i],'>')){
+                    printf("File name is %s\n", trimString(locationOfGreaterThan+1) );
+                    //int fd=open(args[i+1],O_RDWR);
+                    //dup2(fd, STDOUT_FILENO);
+                //}
+            //}
+        }
+        else if(strchr(line, '<')){
+            for(int i=0;i<argsLen;i++){
+                if(strchr(args[i],'<')){
+                    int fd=open(args[i+1],O_RDWR);
+                    read(fd,line,BUFSIZ*sizeof(char));
+                }
+            }
         }
         if(strchr(line,'|')){
             hasPipe=true;
@@ -53,7 +109,6 @@ int main(void) {
         }
         strcpy(prevLine,line);
         printf("You entered: %s\n",line);
-
 
 
         char *token;
