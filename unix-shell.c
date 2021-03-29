@@ -39,15 +39,14 @@ int main(void) {
         if (line[length - 1] == '\n')
         line[length - 1] = '\0';
         if(strcmp(line, "exit")==0){ //if the input says "exit"
+            printf("Bye\n");
             return 0;
         }
-        /*if(strncmp(line,"!!",2)==0){
-            if(strlen(prevLine)==0){
-                fprintf(stderr,"No previous command\n");
-            }
-            printf("Previous command: %s\n",prevLine);
+        if(strncmp(line,"!!",2)==0){
+            printf("Accessing last command\n");
+            strcpy(line,prevLine);
         }
-        strcpy(line,prevLine);
+        /*strcpy(line,prevLine);
         printf("You entered: %s\n",line);*/
         char *token;
         token=strtok(line," ");
@@ -62,7 +61,7 @@ int main(void) {
         args[tokIndex]=NULL;
         argsLen=tokIndex;
         for(tokIndex=0; tokIndex<argsLen; tokIndex++){
-            printf("%s\n", args[tokIndex]);      //print command/args
+            printf("%s\n", args[tokIndex]);
         }
         int procId=fork();
         if(procId<0){
